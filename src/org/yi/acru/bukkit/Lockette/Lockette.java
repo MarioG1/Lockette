@@ -41,6 +41,7 @@ public class Lockette extends PluginCore{
 	private final LocketteBlockListener		blockListener = new LocketteBlockListener(this);
 	private final LocketteEntityListener	entityListener = new LocketteEntityListener(this);
 	private final LockettePlayerListener	playerListener = new LockettePlayerListener(this);
+        private final LocketteInventoryListener	inventoryListener = new LocketteInventoryListener(this);
 	private final LockettePrefixListener	prefixListener = new LockettePrefixListener(this);
 	private final LocketteWorldListener		worldListener = new LocketteWorldListener(this);
 	protected final LocketteDoorCloser		doorCloser = new LocketteDoorCloser(this);
@@ -127,6 +128,7 @@ public class Lockette extends PluginCore{
 		if(!registered){
 			blockListener.registerEvents();
 			entityListener.registerEvents();
+                        inventoryListener.registerEvents();
 			playerListener.registerEvents();
 			prefixListener.registerEvents();
 			worldListener.registerEvents();
@@ -395,7 +397,7 @@ public class Lockette extends PluginCore{
 		// Load in the alternate sign strings.
 		
 		altPrivate = strings.getString("alternate-private-tag");
-		if((altPrivate == null) || altPrivate.isEmpty() || (original && altPrivate.equals("Privé"))){
+		if((altPrivate == null) || altPrivate.isEmpty() || (original && altPrivate.equals("Privï¿½"))){
 			altPrivate = "Private";
 			strings.set("alternate-private-tag", altPrivate);
 		}
@@ -418,7 +420,7 @@ public class Lockette extends PluginCore{
 		altEveryone = "["+altEveryone+"]";
 		
 		altOperators = strings.getString("alternate-operators-tag");
-		if((altOperators == null) || altOperators.isEmpty() || (original && altOperators.equals("Opérateurs"))){
+		if((altOperators == null) || altOperators.isEmpty() || (original && altOperators.equals("Opï¿½rateurs"))){
 			altOperators = "Operators";
 			strings.set("alternate-operators-tag", altOperators);
 			stringChanged = true;
