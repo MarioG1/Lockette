@@ -45,9 +45,9 @@ public class LocketteBlockListener implements Listener {
 		}
 	}
 
-	final int materialList[] = { Material.CHEST.getId(), Material.TRAPPED_CHEST.getId(), Material.DISPENSER.getId(), Material.DROPPER.getId(), Material.FURNACE.getId(), Material.BURNING_FURNACE.getId(), Material.BREWING_STAND.getId(), Material.TRAP_DOOR.getId(), Material.WOODEN_DOOR.getId(), Material.IRON_DOOR_BLOCK.getId(), Material.FENCE_GATE.getId() };
+	final int materialList[] = { Material.CHEST.getId(), Material.TRAPPED_CHEST.getId(), Material.DISPENSER.getId(), Material.DROPPER.getId(), Material.FURNACE.getId(), Material.BURNING_FURNACE.getId(), Material.BREWING_STAND.getId(), Material.TRAP_DOOR.getId(), Material.IRON_TRAPDOOR.getId(), Material.WOODEN_DOOR.getId(), Material.ACACIA_DOOR.getId(), Material.BIRCH_DOOR.getId(), Material.DARK_OAK_DOOR.getId(), Material.JUNGLE_DOOR.getId(), Material.SPRUCE_DOOR.getId(), Material.IRON_DOOR_BLOCK.getId(), Material.FENCE_GATE.getId(), Material.ACACIA_FENCE_GATE.getId(), Material.BIRCH_FENCE_GATE.getId(), Material.DARK_OAK_FENCE_GATE.getId(), Material.JUNGLE_FENCE_GATE.getId(), Material.SPRUCE_FENCE_GATE.getId() };
 	final int materialListFurnaces[] = { Material.FURNACE.getId(), Material.BURNING_FURNACE.getId() };
-	final int materialListDoors[] = { Material.WOODEN_DOOR.getId(), Material.IRON_DOOR_BLOCK.getId(), Material.FENCE_GATE.getId() };
+	final int materialListDoors[] = { Material.WOODEN_DOOR.getId(), Material.ACACIA_DOOR.getId(), Material.BIRCH_DOOR.getId(), Material.DARK_OAK_DOOR.getId(), Material.JUNGLE_DOOR.getId(), Material.SPRUCE_DOOR.getId(), Material.IRON_DOOR_BLOCK.getId(), Material.FENCE_GATE.getId(), Material.ACACIA_FENCE_GATE.getId(), Material.BIRCH_FENCE_GATE.getId(), Material.DARK_OAK_FENCE_GATE.getId(), Material.JUNGLE_FENCE_GATE.getId(), Material.SPRUCE_FENCE_GATE.getId() };
 	final int materialListBad[] = { 50, 63, 64, 65, 68, 71, 75, 76, 96 };//,12,13,18,46// sand, gravel, leaves, tnt
 
 	public LocketteBlockListener(Lockette instance) {
@@ -87,7 +87,7 @@ public class LocketteBlockListener implements Listener {
 			Sign sign = (Sign) block.getState();
 			String text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 
-			if (text.equals("[private]") || text.equalsIgnoreCase(Lockette.altPrivate)) {
+			if (text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(Lockette.altPrivate)) {
 				int length = player.getName().length();
 
 				if (length > 15)
@@ -127,7 +127,7 @@ public class LocketteBlockListener implements Listener {
 				sign.update();
 
 				plugin.localizedMessage(player, null, "msg-user-release-owned", sign.getLine(1));
-			} else if (text.equals("[more users]") || text.equalsIgnoreCase(Lockette.altMoreUsers)) {
+			} else if (text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(Lockette.altMoreUsers)) {
 				Block checkBlock = Lockette.getSignAttachedBlock(block);
 				if (checkBlock == null)
 					return;
@@ -276,7 +276,7 @@ public class LocketteBlockListener implements Listener {
 			Sign sign = (Sign) against.getState();
 			String text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 
-			if (text.equals("[private]") || text.equalsIgnoreCase(Lockette.altPrivate) || text.equals("[more users]") || text.equalsIgnoreCase(Lockette.altMoreUsers)) {
+			if (text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(Lockette.altPrivate) || text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(Lockette.altMoreUsers)) {
 				event.setCancelled(true);
 				return;
 			}
@@ -321,8 +321,8 @@ public class LocketteBlockListener implements Listener {
 					if (Lockette.isProtected(checkBlock)) {
 						// Add a users sign only if owner.
 						if (Lockette.isOwner(checkBlock, player.getName())) {
-							sign.setLine(0, Lockette.altMoreUsers);
-							sign.setLine(1, Lockette.altEveryone);
+							sign.setLine(0, "["+Lockette.altMoreUsers+"]");
+							sign.setLine(1, "["+Lockette.altEveryone+"]");
 							sign.setLine(2, "");
 							sign.setLine(3, "");
 							sign.update(true);
@@ -341,7 +341,7 @@ public class LocketteBlockListener implements Listener {
 							return;
 						}
 	
-						sign.setLine(0, Lockette.altPrivate);
+						sign.setLine(0, "["+Lockette.altPrivate+"]");
 						sign.setLine(1, player.getName().substring(0, length));
 						sign.setLine(2, "");
 						sign.setLine(3, "");
@@ -802,7 +802,7 @@ public class LocketteBlockListener implements Listener {
 							checkBlock[3] = checkBlock[3].getRelative(BlockFace.WEST);
 
 							for (x = 0; x < 4; ++x) {
-								if (checkBlock[x].getTypeId() == Material.TRAP_DOOR.getId()) {
+								if (checkBlock[x].getTypeId() == Material.TRAP_DOOR.getId() || checkBlock[x].getTypeId() == Material.IRON_TRAPDOOR.getId()) {
 									if (Lockette.findBlockOwner(checkBlock[x], block, true) == null) {
 										if (!doTrapDoors)
 											deny = true;
@@ -1062,8 +1062,12 @@ public class LocketteBlockListener implements Listener {
 
 				// Re-set the text.
 				Sign sign = (Sign) block.getState();
-
-				sign.setLine(0, event.getLine(0));
+                                
+                                if(event.getLine(0).equalsIgnoreCase(Lockette.altPrivate)){
+                                    sign.setLine(0, "["+Lockette.altPrivate+"]");
+                                } else {
+                                    sign.setLine(0, event.getLine(0));
+                                }
 				sign.setLine(1, event.getLine(1));
 				sign.setLine(2, event.getLine(2));
 				sign.setLine(3, event.getLine(3));
@@ -1184,8 +1188,13 @@ public class LocketteBlockListener implements Listener {
 				// Re-set the text.
 				//Sign		
 				sign = (Sign) block.getState();
-
-				sign.setLine(0, event.getLine(0));
+                                
+                                if(event.getLine(0).equalsIgnoreCase(Lockette.altMoreUsers)){
+                                    sign.setLine(0, "["+Lockette.altMoreUsers+"]");
+                                } else {
+                                    sign.setLine(0, event.getLine(0));
+                                }
+                                
 				sign.setLine(1, event.getLine(1));
 				sign.setLine(2, event.getLine(2));
 				sign.setLine(3, event.getLine(3));

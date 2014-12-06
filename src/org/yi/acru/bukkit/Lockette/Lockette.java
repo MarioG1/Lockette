@@ -59,10 +59,10 @@ public class Lockette extends PluginCore{
 	
 	protected static FileConfiguration			strings = null;
 	protected final HashMap<String, Block>	playerList = new HashMap<String, Block>();
-
-	final static int		materialTrapDoor = 96;
-	final static int		materialFenceGate = 107;
-	
+        
+        final static int materialListDoors[] = { Material.WOODEN_DOOR.getId(), Material.ACACIA_DOOR.getId(), Material.BIRCH_DOOR.getId(), Material.DARK_OAK_DOOR.getId(), Material.JUNGLE_DOOR.getId(), Material.SPRUCE_DOOR.getId(), Material.IRON_DOOR_BLOCK.getId() };
+	final static int materialListTrapDoors[] = { Material.TRAP_DOOR.getId(), Material.IRON_TRAPDOOR.getId() };
+        final static int materialListFenceGate[] = { Material.FENCE_GATE.getId(), Material.ACACIA_FENCE_GATE.getId(), Material.BIRCH_FENCE_GATE.getId(), Material.DARK_OAK_FENCE_GATE.getId(), Material.JUNGLE_FENCE_GATE.getId(), Material.SPRUCE_FENCE_GATE.getId()};
 	
 	public Lockette(){
 		plugin = this;
@@ -401,7 +401,7 @@ public class Lockette extends PluginCore{
 			altPrivate = "Private";
 			strings.set("alternate-private-tag", altPrivate);
 		}
-		altPrivate = "["+altPrivate+"]";
+		//altPrivate = "["+altPrivate+"]";
 		
 		altMoreUsers = strings.getString("alternate-moreusers-tag");
 		if((altMoreUsers == null) || altMoreUsers.isEmpty() || (original && altMoreUsers.equals("Autre Noms"))){
@@ -409,7 +409,7 @@ public class Lockette extends PluginCore{
 			strings.set("alternate-moreusers-tag", altMoreUsers);
 			stringChanged = true;
 		}
-		altMoreUsers = "["+altMoreUsers+"]";
+		//altMoreUsers = "["+altMoreUsers+"]";
 		
 		altEveryone = strings.getString("alternate-everyone-tag");
 		if((altEveryone == null) || altEveryone.isEmpty() || (original && altEveryone.equals("Tout le Monde"))){
@@ -417,7 +417,7 @@ public class Lockette extends PluginCore{
 			strings.set("alternate-everyone-tag", altEveryone);
 			stringChanged = true;
 		}
-		altEveryone = "["+altEveryone+"]";
+		//altEveryone = "["+altEveryone+"]";
 		
 		altOperators = strings.getString("alternate-operators-tag");
 		if((altOperators == null) || altOperators.isEmpty() || (original && altOperators.equals("Op�rateurs"))){
@@ -425,7 +425,7 @@ public class Lockette extends PluginCore{
 			strings.set("alternate-operators-tag", altOperators);
 			stringChanged = true;
 		}
-		altOperators = "["+altOperators+"]";
+		//altOperators = "["+altOperators+"]";
 		
 		altTimer = strings.getString("alternate-timer-tag");
 		if((altTimer == null) || altTimer.isEmpty() || (original && altTimer.equals("Minuterie"))){
@@ -677,10 +677,10 @@ public class Lockette extends PluginCore{
 			Sign		sign = (Sign) block.getState();
 			String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 			
-			if(text.equals("[private]") || text.equalsIgnoreCase(altPrivate)){
+			if(text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(altPrivate)){
 				return(true);
 			}
-			else if(text.equals("[more users]") || text.equalsIgnoreCase(altMoreUsers)){
+			else if(text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(altMoreUsers)){
 				Block		checkBlock = getSignAttachedBlock(block);
 				
 				if(checkBlock != null) if(findBlockOwner(checkBlock) != null){
@@ -703,10 +703,10 @@ public class Lockette extends PluginCore{
 			Sign		sign = (Sign) block.getState();
 			String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 			
-			if(text.equals("[private]") || text.equalsIgnoreCase(altPrivate)){
+			if(text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(altPrivate)){
 				return(sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", ""));
 			}
-			else if(text.equals("[more users]") || text.equalsIgnoreCase(altMoreUsers)){
+			else if(text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(altMoreUsers)){
 				Block		checkBlock = getSignAttachedBlock(block);
 				
 				if(checkBlock != null){
@@ -956,10 +956,10 @@ public class Lockette extends PluginCore{
 				(type == Material.BREWING_STAND.getId()) || Lockette.isInList(type, Lockette.customBlockList)){
 			return(findBlockOwnerBase(block, null, false, false, false, false, false));
 		}
-		if(Lockette.protectTrapDoors) if(type == Material.TRAP_DOOR.getId()){
+		if(Lockette.protectTrapDoors) if(isInList(type,materialListTrapDoors)){
 			return(findBlockOwnerBase(block, null, false, false, false, false, false));
 		}
-		if(Lockette.protectDoors) if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+		if(Lockette.protectDoors) if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 			return(findBlockOwnerBase(block, null, false, true, true, false, false));
 		}
 		
@@ -1014,7 +1014,7 @@ public class Lockette extends PluginCore{
 			checkBlock = block.getRelative(BlockFace.UP);
 			type = checkBlock.getTypeId();
 			
-			if((type != Material.WOODEN_DOOR.getId()) && (type != Material.IRON_DOOR_BLOCK.getId()) && (type != materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				// Handle door above type.
 				
 				return(findBlockOwnerBase(checkBlock, null, false, true, true, false, false));
@@ -1049,7 +1049,7 @@ public class Lockette extends PluginCore{
 			//return(findBlockOwnerBase(block, ignore, false, false, false, false, false));
 			return(findBlockOwner(getTrapDoorAttachedBlock(block), ignoreBlock, false));
 		}
-		if(Lockette.protectDoors) if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+		if(Lockette.protectDoors) if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 			return(findBlockOwnerBase(block, ignore, true, true, true, true, iterateFurther));
 		}
 		
@@ -1103,7 +1103,7 @@ public class Lockette extends PluginCore{
 			
 			checkBlock = block.getRelative(BlockFace.UP);
 			type = checkBlock.getTypeId();
-			if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				// Handle door above type.
 				
 				result = findBlockOwnerBase(checkBlock, ignore, true, true, true, true, iterateFurther);
@@ -1114,13 +1114,13 @@ public class Lockette extends PluginCore{
 			
 			checkBlock = block.getRelative(BlockFace.DOWN);
 			type = checkBlock.getTypeId();
-			if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				// For door below only.
 				// Don't include the block below door, as a sign there would not protect the target block.
 				
 				Block		checkBlock2 = checkBlock.getRelative(BlockFace.DOWN);
 				type = checkBlock2.getTypeId();
-				if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+				if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 					return(findBlockOwnerBase(checkBlock2, ignore, true, true, false, true, iterateFurther));
 				}
 				else{
@@ -1148,7 +1148,7 @@ public class Lockette extends PluginCore{
 			checkBlock = block.getRelative(BlockFace.UP);
 			type = checkBlock.getTypeId();
 			
-			if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				checkBlock = findBlockOwnerBase(checkBlock, ignore, false, iterateUp, false, includeEnds, false);
 			}
 			else if(includeEnds) checkBlock = findBlockOwnerBase(checkBlock, ignore, false, false, false, includeEnds, false);
@@ -1161,7 +1161,7 @@ public class Lockette extends PluginCore{
 			checkBlock = block.getRelative(BlockFace.DOWN);
 			type = checkBlock.getTypeId();
 			
-			if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				checkBlock = findBlockOwnerBase(checkBlock, ignore, false, false, iterateDown, includeEnds, false);
 			}
 			else if(includeEnds) checkBlock = findBlockOwnerBase(checkBlock, ignore, false, false, false, includeEnds, false);
@@ -1190,7 +1190,12 @@ public class Lockette extends PluginCore{
 					Sign		sign = (Sign) checkBlock.getState();
 					String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 					
-					if(text.equals("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
+                                        //Fix sings without [] (1.8 Update)
+                                        if(text.equalsIgnoreCase(altPrivate)){
+                                            sign.setLine(0, "["+altPrivate+"]");
+                                            sign.update();
+                                        }
+					if(text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
 				}
 			}
 		}
@@ -1213,7 +1218,12 @@ public class Lockette extends PluginCore{
 					Sign		sign = (Sign) checkBlock.getState();
 					String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 					
-					if(text.equals("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
+                                        //Fix sings without [] (1.8 Update)
+                                        if(text.equalsIgnoreCase(altPrivate)){
+                                            sign.setLine(0, "["+altPrivate+"]");
+                                            sign.update();
+                                        }
+					if(text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
 				}
 			}
 		}
@@ -1236,7 +1246,12 @@ public class Lockette extends PluginCore{
 					Sign		sign = (Sign) checkBlock.getState();
 					String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 					
-					if(text.equals("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
+                                        //Fix sings without [] (1.8 Update)
+                                        if(text.equalsIgnoreCase(altPrivate)){
+                                            sign.setLine(0, "["+altPrivate+"]");
+                                            sign.update();
+                                        }
+					if(text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
 				}
 			}
 		}
@@ -1259,7 +1274,12 @@ public class Lockette extends PluginCore{
 					Sign		sign = (Sign) checkBlock.getState();
 					String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 					
-					if(text.equals("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
+                                        //Fix sings without [] (1.8 Update)
+                                        if(text.equalsIgnoreCase(altPrivate)){
+                                            sign.setLine(0, "["+altPrivate+"]");
+                                            sign.update();
+                                        }
+					if(text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(altPrivate)) return(checkBlock);
 				}
 			}
 		}
@@ -1279,7 +1299,7 @@ public class Lockette extends PluginCore{
 		if(Lockette.protectTrapDoors) if(type == Material.TRAP_DOOR.getId()){
 			return(findBlockUsersBase(getTrapDoorAttachedBlock(block), false, false, false, true, 0));
 		}
-		if(Lockette.protectDoors) if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+		if(Lockette.protectDoors) if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 			return(findBlockUsersBase(block, true, true, true, false, signBlock.getY()));
 		}
 		return(findBlockUsersBase(block, false, false, false, false, 0));
@@ -1299,7 +1319,7 @@ public class Lockette extends PluginCore{
 			checkBlock = block.getRelative(BlockFace.UP);
 			type = checkBlock.getTypeId();
 			
-			if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				list.addAll(findBlockUsersBase(checkBlock, false, iterateUp, false, false, includeYPos));
 			}
 			// Limitation for more users sign.
@@ -1310,7 +1330,7 @@ public class Lockette extends PluginCore{
 			checkBlock = block.getRelative(BlockFace.DOWN);
 			type = checkBlock.getTypeId();
 			
-			if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialFenceGate)){
+			if(isInList(type,materialListDoors) || isInList(type,materialListFenceGate)){
 				list.addAll(findBlockUsersBase(checkBlock, false, false, iterateDown, false, includeYPos));
 			}
 			// No limitation here.
@@ -1328,7 +1348,12 @@ public class Lockette extends PluginCore{
 				Sign		sign = (Sign) checkBlock.getState();
 				String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 				
-				if(text.equals("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
+                                //Fix sings without [] (1.8 Update)
+                                if(text.equalsIgnoreCase(altMoreUsers)){
+                                    sign.setLine(0, "["+altMoreUsers+"]");
+                                    sign.update();
+                                }
+				if(text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
 			}
 		}
 		else if(iterate){
@@ -1350,8 +1375,13 @@ public class Lockette extends PluginCore{
 			if(face == 5){
 				Sign		sign = (Sign) checkBlock.getState();
 				String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
-
-				if(text.equals("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
+                                
+                                //Fix sings without [] (1.8 Update)
+                                if(text.equalsIgnoreCase(altMoreUsers)){
+                                    sign.setLine(0, "["+altMoreUsers+"]");
+                                    sign.update();
+                                }
+				if(text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
 			}
 		}
 		else if(iterate){
@@ -1374,7 +1404,12 @@ public class Lockette extends PluginCore{
 				Sign		sign = (Sign) checkBlock.getState();
 				String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 
-				if(text.equals("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
+                                //Fix sings without [] (1.8 Update)
+                                if(text.equalsIgnoreCase(altMoreUsers)){
+                                    sign.setLine(0, "["+altMoreUsers+"]");
+                                    sign.update();
+                                }
+				if(text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
 			}
 		}
 		else if(iterate){
@@ -1397,7 +1432,12 @@ public class Lockette extends PluginCore{
 				Sign		sign = (Sign) checkBlock.getState();
 				String		text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 
-				if(text.equals("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
+                                //Fix sings without [] (1.8 Update)
+                                if(text.equalsIgnoreCase(altMoreUsers)){
+                                    sign.setLine(0, "["+altMoreUsers+"]");
+                                    sign.update();
+                                }
+				if(text.equalsIgnoreCase("[more users]") || text.equalsIgnoreCase(altMoreUsers)) list.add(checkBlock);
 			}
 		}
 		else if(iterate){
@@ -1541,10 +1581,10 @@ public class Lockette extends PluginCore{
 		int			type = block.getTypeId();
 		//List<Block> list = new ArrayList<Block>();
 
-		if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId())){
+		if(isInList(type,materialListDoors)){
 			toggleDoorBase(block, null, true, false, null);
 		}
-		else if((type == materialTrapDoor) || (type == materialFenceGate)){
+		else if(isInList(type,materialListFenceGate) || isInList(type,materialListTrapDoors)){
 			toggleDoorBase(block, null, false, false, null);
 		}
 		//return(list);
@@ -1558,7 +1598,7 @@ public class Lockette extends PluginCore{
 		
 		//toggleDoor(block, null, false, false, null);
 		//return(list);
-		if((type == Material.WOODEN_DOOR.getId()) || (type == Material.IRON_DOOR_BLOCK.getId()) || (type == materialTrapDoor) || (type == materialFenceGate)){
+		if(isInList(type,materialListDoors)){
 			block.setData((byte) (block.getData() ^ 4));
 			try{
 				if(effect) block.getWorld().playEffect(block.getLocation(), Effect.DOOR_TOGGLE, 0);
@@ -1697,6 +1737,15 @@ public class Lockette extends PluginCore{
 		if(list == null) return(false);
 		for(int x = 0; x < list.size(); ++x) if(list.get(x).equals(target)) return(true);
 		return(false);
+	}
+        
+        private static boolean isInList(int target, int[] list) {
+		if (list == null)
+			return (false);
+		for (int x = 0; x < list.length; ++x)
+			if (target == list[x])
+				return (true);
+		return (false);
 	}
 }
 
