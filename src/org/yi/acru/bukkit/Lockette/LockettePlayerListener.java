@@ -9,9 +9,12 @@ package org.yi.acru.bukkit.Lockette;
 
 // Imports.
 import java.util.List;
+import java.util.logging.Level;
+import org.bukkit.Bukkit;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
@@ -27,6 +30,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import org.yi.acru.bukkit.Lockette.LocketteUtils;
 
 
 
@@ -124,12 +129,8 @@ public class LockettePlayerListener implements Listener{
 				else{plugin.localizedMessage(player, null, "msg-error-edit"); return;}
 				
 				
-				int			length = player.getName().length();
-				
-				if(length > 15) length = 15;
-
 				// Check owner.
-				if(owner.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length)) || Lockette.debugMode){
+				if(LocketteUtils.isOwner(owner, player) || Lockette.debugMode){
 					int			line = Integer.parseInt(command[1]) - 1;
 					
 					// Disallow editing [Private] line 1/2 here.
@@ -140,16 +141,17 @@ public class LockettePlayerListener implements Listener{
 					
 					
 					if(command.length == 3){
-						length = command[2].length();
-						
-						if(length > 15) length = 15;
-						if(Lockette.colorTags) sign.setLine(line, command[2].substring(0, length).replaceAll("&([0-9A-Fa-f])", "\u00A7$1"));
-						else sign.setLine(line, command[2].substring(0, length));
+                                                OfflinePlayer oplayer = Bukkit.getOfflinePlayer(command[2]);
+                                                if(oplayer.hasPlayedBefore()){
+                                                    sign.setLine(line, LocketteUtils.createPlayerString(oplayer));  
+                                                    plugin.localizedMessage(player, null, "msg-owner-edit");
+                                                } else {
+                                                    plugin.localizedMessage(player, null, "msg-owner-edit-player-not-found");
+                                                    sign.setLine(line, "");
+                                                }
 					}
 					else sign.setLine(line, "");
-					sign.update();
-					
-					plugin.localizedMessage(player, null, "msg-owner-edit");
+					sign.update();				
 					return;
 				}
 				else{plugin.localizedMessage(player, null, "msg-error-edit"); return;}
@@ -237,7 +239,7 @@ public class LockettePlayerListener implements Listener{
 							
 							if(Lockette.isProtected(block)){
 								// Add a users sign only if owner.
-								if(Lockette.isOwner(block, player.getName())) place = true; 
+								if(Lockette.isOwner(block, player)) place = true; 
 							}
 							else place = true;
 							//if(Lockette.altPrivate == null){}//if(Lockette.altMoreUsers == null){}
@@ -343,39 +345,7 @@ public class LockettePlayerListener implements Listener{
 		boolean		allow = false;
 		
 		if(canInteract(block, signBlock, player, true)) allow = true;
-		
-		/*
-		// Fee stuff...
-		if(!allow){
-			// Check if we can pay a fee to activate.
-			int fee = getSignOption(signBlock, "fee", Lockette.altFee, 0);
-			
-			if(signBlock.equals(plugin.playerList.get(player.getName()))){
-				if(fee == 0){
-					player.sendMessage("unable to pay fee");
-				}
-				else{
-					player.sendMessage("Fee of " +plugin.economyFormat(fee)+" paid (fake)");
-					plugin.playerList.put(player.getName(), block);
-					allow = true;
-				}
-				/
-				if(fee != 0){
-					Sign		sign = (Sign) signBlock.getState();
-					String		text = sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "");
-					
-					if(plugin.economyTransfer(player.getName(), text, fee)){
-						allow = true;
-						plugin.playerList.put(player.getName(), block);
-					}
-					else{}
-				}/
-			}
-			else if(fee != 0){
-				player.sendMessage("first touch sign to pay fee.");
-			}
-		}
-		*/
+
 		if(allow){
 			List<Block> list = Lockette.toggleDoors(block, Lockette.getSignAttachedBlock(signBlock), wooden, trap);
 			
@@ -383,16 +353,7 @@ public class LockettePlayerListener implements Listener{
 			
 			plugin.doorCloser.add(list, delta != 0, delta);
 			return(true);
-		}
-		
-		
-		// Don't have permission.
-		
-		//event.setCancelled(true);
-		
-		//if(Lockette.oldListener){
-		//	if(wooden) Lockette.toggleSingleDoor(block);
-		//}
+		}	
 		
 		// Report only once, unless a different block is clicked.
 		if(block.equals(plugin.playerList.get(player.getName()))) return(false);
@@ -422,35 +383,20 @@ public class LockettePlayerListener implements Listener{
 		}
 		else return;
 		
-		int			length = player.getName().length();
-		
-		if(length > 15) length = 15;
-		
 		// Check owner.
-		if(sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length)) || Lockette.debugMode){
-			if(!block.equals(plugin.playerList.get(player.getName()))){
-				// Associate the user with the owned sign.
-				plugin.playerList.put(player.getName(), block);
-				plugin.localizedMessage(player, null, "msg-help-select");
-			}
+		if(LocketteUtils.isOwner(sign, player) || Lockette.debugMode){
+                    if(!block.equals(plugin.playerList.get(player.getName()))){
+			// Associate the user with the owned sign.
+			plugin.playerList.put(player.getName(), block);
+			plugin.localizedMessage(player, null, "msg-help-select");
+                    }
 		}
-		else{/*
-			int fee = getSignOption(signBlock, "fee", Lockette.altFee, 0);
-			
-			if(fee != 0){
-				if(!signBlock.equals(plugin.playerList.get(player.getName()))){
-					// First half of fee approval.
-					plugin.playerList.put(player.getName(), signBlock);
-					plugin.localizedMessage(player, null, "msg-user-touch-fee", sign.getLine(1), plugin.economyFormat(fee));
-				}
-			}
-			else{*/
-				if(!block.equals(plugin.playerList.get(player.getName()))){
-					// Only print this message once as well.
-					plugin.playerList.put(player.getName(), block);
-					plugin.localizedMessage(player, null, "msg-user-touch-owned", sign.getLine(1));
-				}
-			//}
+		else{
+                    if(!block.equals(plugin.playerList.get(player.getName()))){
+			// Only print this message once as well.
+			plugin.playerList.put(player.getName(), block);
+			plugin.localizedMessage(player, null, "msg-user-touch-owned", sign.getLine(1));
+       		    }
 		}
 	}
 	
@@ -488,33 +434,14 @@ public class LockettePlayerListener implements Listener{
 		// Lets see if the player is allowed to touch...
 		
 		Sign		sign = (Sign) signBlock.getState();
-		int			length = player.getName().length();
-		String		line;
+		String		line;	
 		
-		if(length > 15) length = 15;
+		// Check if player is allowed to interact.
 		
-		
-		// Check owner.
-		
-		line = sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "");
-		
-		if(line.equals(player.getName().substring(0, length))) return(true);
-		if(plugin.inGroup(block.getWorld(), player, line)) return(true);
+		if(LocketteUtils.hasAccess(sign, player)) return true;       
 		
 		
-		// Check main two users.
-		
-		int			y;
-		
-		for(y = 2; y <= 3; ++y) if(!sign.getLine(y).isEmpty()){
-			line = sign.getLine(y).replaceAll("(?i)\u00A7[0-F]", "");
-			
-			if(plugin.inGroup(block.getWorld(), player, line)) return(true);
-			if(line.equalsIgnoreCase(player.getName().substring(0, length))) return(true);
-		}
-		
-		
-		// Check for more users.
+		// Check for more users Sign.
 		
 		List<Block>	list = Lockette.findBlockUsers(block, signBlock);
 		int			x, count = list.size();
@@ -522,13 +449,7 @@ public class LockettePlayerListener implements Listener{
 		
 		for(x = 0; x < count; ++x){
 			sign2 = (Sign) list.get(x).getState();
-			
-			for(y = 1; y <= 3; ++y) if(!sign2.getLine(y).isEmpty()){
-				line = sign2.getLine(y).replaceAll("(?i)\u00A7[0-F]", "");
-				
-				if(plugin.inGroup(block.getWorld(), player, line)) return(true);
-				if(line.equalsIgnoreCase(player.getName().substring(0, length))) return(true);
-			}
+                        if(LocketteUtils.hasAccess(sign2, player)) return true;
 		}
 		
 		
@@ -595,12 +516,9 @@ public class LockettePlayerListener implements Listener{
 		if(signBlock == null) return(true);
 		
 		Sign		sign = (Sign) signBlock.getState();
-		int			length = player.getName().length();
-		
-		if(length > 15) length = 15;
 		
 		// Check owner only.
-		if(sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length))){
+		if(LocketteUtils.isOwner(sign, player)){
 			Lockette.toggleSingleDoor(block);
 			return(false);
 		}

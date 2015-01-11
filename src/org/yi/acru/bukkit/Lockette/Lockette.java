@@ -643,6 +643,11 @@ public class Lockette extends PluginCore{
 			strings.set("msg-owner-edit", "Sign edited successfully.");
 			stringChanged = true;
 		}
+		tempString = strings.getString("msg-owner-edit-player-not-found");
+		if(tempString == null){
+			strings.set("msg-owner-edit-player-not-found", "No Player with this name found. Please check if you wrote the name correct.");
+			stringChanged = true;
+		}
 		
 		
 		/*
@@ -734,7 +739,7 @@ public class Lockette extends PluginCore{
 	}
 	
 	
-	public static boolean isOwner(Block block, String name){
+	public static boolean isOwner(Block block, Player player){
 		if(!enabled) return(true);
 		
 		Block		checkBlock = Lockette.findBlockOwner(block);
@@ -742,12 +747,9 @@ public class Lockette extends PluginCore{
 		if(checkBlock == null) return(true);
 		
 		Sign		sign = (Sign) checkBlock.getState();
-		int			length = name.length();
-
-		if(length > 15) length = 15;
 		
 		// Check owner only.
-		if(sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(name.substring(0, length))){
+		if(LocketteUtils.isOwner(sign, player)){
 			return(true);
 		}
 		
@@ -755,7 +757,7 @@ public class Lockette extends PluginCore{
 	}
 	
 	
-	public static boolean isUser(Block block, String name, boolean withGroups){
+	public static boolean isUser(Block block, Player player, boolean withGroups){
 		if(!enabled) return(true);
 		
 		Block		signBlock = Lockette.findBlockOwner(block);
@@ -766,21 +768,10 @@ public class Lockette extends PluginCore{
 		// Check main three users.
 
 		Sign		sign = (Sign) signBlock.getState();
-		int			length = name.length();
 		String		line;
 		int			y;
 		
-		if(length > 15) length = 15;
-		
-		for(y = 1; y <= 3; ++y) if(!sign.getLine(y).isEmpty()){
-			line = sign.getLine(y).replaceAll("(?i)\u00A7[0-F]", "");
-			
-			// Check if the name is there verbatum.
-			if(line.equalsIgnoreCase(name.substring(0, length))) return(true);
-
-			// Check if name is in a group listed on the sign.
-			if(withGroups) if(plugin.inGroup(block.getWorld(), name, line)) return(true);
-		}
+		if(LocketteUtils.isMember(sign, player)) return true;
 		
 		
 		// Check for more users.
@@ -789,17 +780,8 @@ public class Lockette extends PluginCore{
 		int			x, count = list.size();
 		
 		for(x = 0; x < count; ++x){
-			sign = (Sign) list.get(x).getState();
-			
-			for(y = 1; y <= 3; ++y) if(!sign.getLine(y).isEmpty()){
-				line = sign.getLine(y).replaceAll("(?i)\u00A7[0-F]", "");
-
-				// Check if the name is there verbatum.
-				if(line.equalsIgnoreCase(name.substring(0, length))) return(true);
-
-				// Check if name is in a group listed on the sign.
-				if(withGroups) if(plugin.inGroup(block.getWorld(), name, line)) return(true);
-			}
+			sign = (Sign) list.get(x).getState();		
+			if(LocketteUtils.isMember(sign, player)) return true;
 		}
 		
 		
@@ -1028,7 +1010,7 @@ public class Lockette extends PluginCore{
 	// Version for finding conflicts, when creating a new sign.
 	// Ignore the sign being made, in case another plugin has set the text of the sign prematurely.
 	protected static Block findBlockOwner(Block block, Block ignoreBlock, boolean iterateFurther){
-		int			type = block.getTypeId();
+		int		type = block.getTypeId();
 		Location	ignore;
 		
 		if(ignoreBlock != null) ignore = ignoreBlock.getLocation();
@@ -1061,7 +1043,7 @@ public class Lockette extends PluginCore{
 			
 			checkBlock = findBlockOwnerBase(block, ignore, false, false, false, false, false);
 			if(checkBlock != null) return(checkBlock);
-			
+                        
 			
 			// Need to check if there is a trap door attached to the block, and check for a sign attached there.
 			
@@ -1095,7 +1077,7 @@ public class Lockette extends PluginCore{
 					checkBlock = findBlockOwnerBase(checkBlock, ignore, false, false, false, false, false);
 					if(checkBlock != null) return(checkBlock);
 				}
-			}
+                        }
 		}
 		
 		if(Lockette.protectDoors){

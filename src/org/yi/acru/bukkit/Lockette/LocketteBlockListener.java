@@ -8,6 +8,8 @@ package org.yi.acru.bukkit.Lockette;
 
 // Imports.
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -88,13 +90,9 @@ public class LocketteBlockListener implements Listener {
 			String text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "").toLowerCase();
 
 			if (text.equalsIgnoreCase("[private]") || text.equalsIgnoreCase(Lockette.altPrivate)) {
-				int length = player.getName().length();
-
-				if (length > 15)
-					length = 15;
 
 				// Check owner.
-				if (sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length))) {
+				if (LocketteUtils.isOwner(sign, player)) {
 					//Block		checkBlock = Lockette.getSignAttachedBlock(block);
 					//if(checkBlock == null) checkBlock = block;
 
@@ -137,12 +135,8 @@ public class LocketteBlockListener implements Listener {
 					return;
 
 				Sign sign2 = (Sign) signBlock.getState();
-				int length = player.getName().length();
 
-				if (length > 15)
-					length = 15;
-
-				if (sign2.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length))) {
+				if (LocketteUtils.isOwner(sign2, player)) {
 					plugin.localizedMessage(player, null, "msg-owner-remove");
 					return;
 				}
@@ -159,13 +153,9 @@ public class LocketteBlockListener implements Listener {
 				return;
 
 			Sign sign = (Sign) signBlock.getState();
-			int length = player.getName().length();
-
-			if (length > 15)
-				length = 15;
 
 			// Check owner.
-			if (sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length))) {
+			if (LocketteUtils.isOwner(sign, player)) {
 				if (Lockette.findBlockOwnerBreak(block) != null) {
 					// This block has the sign attached.  (Or the the door above the block.)
 
@@ -312,15 +302,10 @@ public class LocketteBlockListener implements Listener {
 				|| Lockette.isInList(type, Lockette.customBlockList)) {
 
 					Sign sign = (Sign) block.getState();
-					
-					int length = player.getName().length();
-	
-					if (length > 15)
-						length = 15;
 	
 					if (Lockette.isProtected(checkBlock)) {
 						// Add a users sign only if owner.
-						if (Lockette.isOwner(checkBlock, player.getName())) {
+						if (Lockette.isOwner(checkBlock, player)) {
 							sign.setLine(0, "["+Lockette.altMoreUsers+"]");
 							sign.setLine(1, "["+Lockette.altEveryone+"]");
 							sign.setLine(2, "");
@@ -342,7 +327,8 @@ public class LocketteBlockListener implements Listener {
 						}
 	
 						sign.setLine(0, "["+Lockette.altPrivate+"]");
-						sign.setLine(1, player.getName().substring(0, length));
+                                                //Set sing text Player and Player uuid and some spaces so the player UUId is not visible
+						sign.setLine(1, LocketteUtils.createPlayerString(player));
 						sign.setLine(2, "");
 						sign.setLine(3, "");
 						sign.update(true);
@@ -378,13 +364,9 @@ public class LocketteBlockListener implements Listener {
 				// Expanding a private chest, see if its allowed.
 
 				Sign sign = (Sign) signBlock.getState();
-				int length = player.getName().length();
-
-				if (length > 15)
-					length = 15;
 
 				// Check owner.
-				if (sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length)))
+				if (LocketteUtils.isOwner(sign, player))
 					return;
 
 				// If we got here, then not allowed.
@@ -509,17 +491,8 @@ public class LocketteBlockListener implements Listener {
 			return true;
 
 		Sign sign = (Sign) signBlock.getState();
-		int length = player.getName().length();
-
-		if (length > 15)
-			length = 15;
-
-		// Check owner.
-		if (sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length)))
-			return true;
-
-		// Owner doesn't match so deny.
-		return false;
+                
+		return LocketteUtils.isOwner(sign, player);
 	}
 
 	/*
@@ -658,7 +631,15 @@ public class LocketteBlockListener implements Listener {
 				//return;
 			}
 		} else if (typeSignPost) {
+			Sign sign = (Sign) block.getState();
+			String text = sign.getLine(0).replaceAll("(?i)\u00A7[0-F]", "");
 
+			if (text.equalsIgnoreCase("[Private]") || text.equalsIgnoreCase(Lockette.altPrivate) || text.equalsIgnoreCase("[More Users]") || text.equalsIgnoreCase(Lockette.altMoreUsers)) {
+				if (event.isCancelled())
+					return;
+				//event.setCancelled(true);
+				//return;
+			}
 		} else {
 			// Not a sign, wtf!
 			event.setCancelled(true);
@@ -1012,12 +993,9 @@ public class LocketteBlockListener implements Listener {
 			// Claim it...
 
 			boolean anyone = true;
-			int length = player.getName().length();
 
 			if (event.getLine(1).isEmpty())
 				anyone = false;
-			if (length > 15)
-				length = 15;
 
 			// In case some other plugin messed with the cancel state.
 			event.setCancelled(false);
@@ -1053,7 +1031,7 @@ public class LocketteBlockListener implements Listener {
 			}
 
 			if (!anyone)
-				event.setLine(1, player.getName().substring(0, length));
+				event.setLine(1, LocketteUtils.createPlayerString(player));
 
 			if (!typeWallSign) {
 				// Set to wall type.
@@ -1068,9 +1046,9 @@ public class LocketteBlockListener implements Listener {
                                 } else {
                                     sign.setLine(0, event.getLine(0));
                                 }
-				sign.setLine(1, event.getLine(1));
-				sign.setLine(2, event.getLine(2));
-				sign.setLine(3, event.getLine(3));
+				sign.setLine(1, LocketteUtils.createPlayerString(event.getPlayer()));
+				sign.setLine(2, LocketteUtils.createPlayerString(event.getLine(2)));
+				sign.setLine(3, LocketteUtils.createPlayerString(event.getLine(3)));
 				sign.update(true);
 			} else
 				block.setData(face);
@@ -1120,7 +1098,7 @@ public class LocketteBlockListener implements Listener {
 								sign = (Sign) signBlock.getState();
 
 								// Check owner.
-								if (sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length))) {
+								if (LocketteUtils.isOwner(sign, player)) {
 									face = block.getData();
 								}
 							}
@@ -1155,7 +1133,7 @@ public class LocketteBlockListener implements Listener {
 						sign = (Sign) signBlock.getState();
 
 						// Check owner.
-						if (sign.getLine(1).replaceAll("(?i)\u00A7[0-F]", "").equals(player.getName().substring(0, length))) {
+						if (LocketteUtils.isOwner(sign, player)) {
 							face = faceList[x];
 							//type = y;
 							break;
@@ -1195,9 +1173,9 @@ public class LocketteBlockListener implements Listener {
                                     sign.setLine(0, event.getLine(0));
                                 }
                                 
-				sign.setLine(1, event.getLine(1));
-				sign.setLine(2, event.getLine(2));
-				sign.setLine(3, event.getLine(3));
+				sign.setLine(1, LocketteUtils.createPlayerString(event.getLine(1)));
+				sign.setLine(2, LocketteUtils.createPlayerString(event.getLine(2)));
+				sign.setLine(3, LocketteUtils.createPlayerString(event.getLine(3)));
 				sign.update(true);
 
 			} else
@@ -1223,7 +1201,7 @@ public class LocketteBlockListener implements Listener {
 
 		// Check block below for doors or block to side for trapdoors.
 
-		if (!Lockette.isOwner(against, player.getName()))
+		if (!Lockette.isOwner(against, player))
 			return (false);
 
 		if (Lockette.protectTrapDoors)
@@ -1236,32 +1214,32 @@ public class LocketteBlockListener implements Listener {
 
 		// Check block above door.
 
-		if (!Lockette.isOwner(against.getRelative(BlockFace.UP, 3), player.getName()))
+		if (!Lockette.isOwner(against.getRelative(BlockFace.UP, 3), player))
 			return (false);
 
 		// Check neighboring doors.
 
 		checkBlock = block.getRelative(BlockFace.NORTH);
 		if (checkBlock.getTypeId() == block.getTypeId()) {
-			if (!Lockette.isOwner(checkBlock, player.getName()))
+			if (!Lockette.isOwner(checkBlock, player))
 				return (false);
 		}
 
 		checkBlock = block.getRelative(BlockFace.EAST);
 		if (checkBlock.getTypeId() == block.getTypeId()) {
-			if (!Lockette.isOwner(checkBlock, player.getName()))
+			if (!Lockette.isOwner(checkBlock, player))
 				return (false);
 		}
 
 		checkBlock = block.getRelative(BlockFace.SOUTH);
 		if (checkBlock.getTypeId() == block.getTypeId()) {
-			if (!Lockette.isOwner(checkBlock, player.getName()))
+			if (!Lockette.isOwner(checkBlock, player))
 				return (false);
 		}
 
 		checkBlock = block.getRelative(BlockFace.WEST);
 		if (checkBlock.getTypeId() == block.getTypeId()) {
-			if (!Lockette.isOwner(checkBlock, player.getName()))
+			if (!Lockette.isOwner(checkBlock, player))
 				return (false);
 		}
 
