@@ -54,9 +54,7 @@ public class LocketteUtils {
             }
         } else {
             uuid = UUID.fromString(sign.getLine(1).split(";")[1]);
-        }
-        Lockette.log.log(Level.INFO, "Owner Name: {0}", name);
-        Lockette.log.log(Level.INFO, "Owner UUID: {0}", uuid.toString());	
+        }	
 	return uuid.equals(player.getUniqueId());     
     }
     
@@ -68,9 +66,7 @@ public class LocketteUtils {
         for(y = 2; y <= 3; ++y){
             if(!sign.getLine(y).isEmpty()){
                 name = sign.getLine(y).split(";")[0].trim();
-                uuid = UUID.fromString(sign.getLine(y).split(";")[1]);
-                Lockette.log.log(Level.INFO, "Member Name: {0}", name);
-                Lockette.log.log(Level.INFO, "Member UUID: {0}", uuid.toString());		
+                uuid = UUID.fromString(sign.getLine(y).split(";")[1]);	
                 if(uuid.equals(player.getUniqueId())) return(true);    
             }		
         } return false;
