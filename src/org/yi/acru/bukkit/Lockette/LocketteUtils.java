@@ -8,6 +8,7 @@ package org.yi.acru.bukkit.Lockette;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -28,23 +29,29 @@ public class LocketteUtils {
         
         if(line.split(";").length == 1)
         {
-            Lockette.log.log(Level.INFO, "Old sign found converting to new format");
+            Lockette.log.log(Level.INFO, "[Lockette] Old sign found converting to new format");
             for(int y = 1; y <= 3; ++y){
                 if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
-                    oplayer = Bukkit.getOfflinePlayer(sign.getLine(y));
+                    oplayer = Bukkit.getOfflinePlayer(ChatColor.stripColor(sign.getLine(y)));
+                    Lockette.log.log(Level.INFO, "[Lockette] Converting {0} !", oplayer.getName());
+                    try{
                     if(oplayer.hasPlayedBefore()){
                         tmp_uuid = oplayer.getUniqueId();
                         sign.setLine(y,createPlayerString(oplayer));
                         if(y == 1){
                             uuid = tmp_uuid;
-                        }
+                        }                                   
                     } else {
-                        Lockette.log.log(Level.INFO, "Can't convert "+sign.getLine(y) + " !");
+                        Lockette.log.log(Level.INFO, "[Lockette] Can't convert {0} !", sign.getLine(y));
                         sign.setLine(y, "");
                         if(y == 1){
                             deny = true;
                             sign.setLine(0, "[?]");
                         }
+                    }} catch (Exception e){
+                        e.printStackTrace();
+                        Lockette.log.log(Level.INFO, "[Lockette] Can't convert {0} !", sign.getLine(y));
+                        return false;
                     }
                 }
             }
@@ -54,8 +61,18 @@ public class LocketteUtils {
             }
         } else {
             uuid = UUID.fromString(sign.getLine(1).split(";")[1]);
-        }	
-	return uuid.equals(player.getUniqueId());     
+        }
+        
+	if(uuid.equals(player.getUniqueId())){
+            //Check if the Player name has changen and update it
+            if(!name.equals(player.getName())){
+                sign.setLine(1, createPlayerString(player));
+                sign.update();
+            }
+            return true;
+        } else {
+            return false;
+        }     
     }
     
     public static boolean isMember(Sign sign, Player player){
@@ -67,7 +84,16 @@ public class LocketteUtils {
             if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
                 name = sign.getLine(y).split(";")[0].trim();
                 uuid = UUID.fromString(sign.getLine(y).split(";")[1]);	
-                if(uuid.equals(player.getUniqueId())) return(true);    
+                if(uuid.equals(player.getUniqueId())){
+                //Check if the Player name has changen and update it
+                    if(!name.equals(player.getName())){
+                        sign.setLine(y, createPlayerString(player));
+                        sign.update();
+                    }
+                    return true;
+                } else {
+                    return false;
+                }      
             }		
         } return false;
     }
