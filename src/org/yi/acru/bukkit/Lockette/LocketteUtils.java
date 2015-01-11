@@ -28,7 +28,7 @@ public class LocketteUtils {
         
         if(line.split(";").length == 1)
         {
-            Lockette.log.log(Level.INFO, "Old sing found converting to new format");
+            Lockette.log.log(Level.INFO, "Old sign found converting to new format");
             for(int y = 1; y <= 3; ++y){
                 if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
                     oplayer = Bukkit.getOfflinePlayer(sign.getLine(y));
