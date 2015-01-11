@@ -64,7 +64,7 @@ public class LocketteUtils {
         UUID uuid;
         
         for(y = 2; y <= 3; ++y){
-            if(!sign.getLine(y).isEmpty()){
+            if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
                 name = sign.getLine(y).split(";")[0].trim();
                 uuid = UUID.fromString(sign.getLine(y).split(";")[1]);	
                 if(uuid.equals(player.getUniqueId())) return(true);    
