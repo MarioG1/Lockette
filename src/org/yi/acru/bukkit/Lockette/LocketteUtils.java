@@ -91,8 +91,6 @@ public class LocketteUtils {
                         sign.update();
                     }
                     return true;
-                } else {
-                    return false;
                 }      
             }		
         } return false;
