@@ -49,9 +49,12 @@ public class LocketteUtils {
                             sign.setLine(0, "[?]");
                         }
                     }} catch (Exception e){
-                        e.printStackTrace();
                         Lockette.log.log(Level.INFO, "[Lockette] Can't convert {0} !", sign.getLine(y));
-                        return false;
+                        sign.setLine(y, "");
+                        if(y == 1){
+                            deny = true;
+                            sign.setLine(0, "[?]");
+                        }
                     }
                 }
             }
@@ -60,7 +63,11 @@ public class LocketteUtils {
                 return false;
             }
         } else {
-            uuid = UUID.fromString(sign.getLine(1).split(";")[1]);
+            if(!sign.getLine(1).isEmpty()){
+                uuid = UUID.fromString(sign.getLine(1).split(";")[1]);
+            } else {
+                return false;
+            }
         }
         
 	if(uuid.equals(player.getUniqueId())){
