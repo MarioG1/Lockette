@@ -42,7 +42,7 @@ public class LocketteUtils {
                             uuid = tmp_uuid;
                         }                                   
                     } else {
-                        Lockette.log.log(Level.INFO, "[Lockette] Can't convert {0} !", sign.getLine(y));
+                        Lockette.log.log(Level.INFO, "[Lockette] Can not convert {0} !", oplayer.getName());
                         sign.setLine(y, "");
                         if(y == 1){
                             deny = true;
@@ -70,16 +70,20 @@ public class LocketteUtils {
             }
         }
         
-	if(uuid.equals(player.getUniqueId())){
-            //Check if the Player name has changen and update it
-            if(!name.equals(player.getName())){
-                sign.setLine(1, createPlayerString(player));
-                sign.update();
+        if(sign.getLine(0).equalsIgnoreCase("[Private]") || sign.getLine(0).equalsIgnoreCase(Lockette.altPrivate)){
+            if(uuid.equals(player.getUniqueId())){
+                //Check if the Player name has changen and update it
+                if(!name.equals(player.getName())){
+                    sign.setLine(1, createPlayerString(player));
+                    sign.update();
+                }
+                return true;
+            } else {
+                return false;
             }
-            return true;
         } else {
             return false;
-        }     
+        }
     }
     
     public static boolean isMember(Sign sign, Player player){
