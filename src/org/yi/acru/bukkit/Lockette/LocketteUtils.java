@@ -93,19 +93,25 @@ public class LocketteUtils {
         
         for(y = 2; y <= 3; ++y){
             if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
-                name = sign.getLine(y).split(";")[0].trim();
-                uuid = UUID.fromString(sign.getLine(y).split(";")[1]);	
-                if(uuid.equals(player.getUniqueId())){
-                //Check if the Player name has changen and update it
-                    if(!name.equals(player.getName())){
-                        sign.setLine(y, createPlayerString(player));
-                        sign.update();
-                    }
-                    return true;
-                }      
+                try {
+                    name = sign.getLine(y).split(";")[0].trim();
+                    uuid = UUID.fromString(sign.getLine(y).split(";")[1]);	
+                    if(uuid.equals(player.getUniqueId())){
+                    //Check if the Player name has changen and update it
+                        if(!name.equals(player.getName())){
+                            sign.setLine(y, createPlayerString(player));
+                            sign.update();
+                        }
+                        return true;
+                    } 
+                } catch (ArrayIndexOutOfBoundsException e){
+                    Lockette.log.log(Level.WARNING, "[Lockette] Strange singn found. Line: " + sign.getLine(y));
+                    return false;
+                }
             }		
         } return false;
     }
+    
     
     public static boolean hasAccess(Sign sign, Player player){
         if(isOwner(sign,player)) return true;
