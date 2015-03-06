@@ -31,7 +31,7 @@ public class LocketteUtils {
         {
             Lockette.log.log(Level.INFO, "[Lockette] Old sign found converting to new format");
             for(int y = 1; y <= 3; ++y){
-                if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
+                if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty() && sign.getLine(y).split(";").length == 1){
                     oplayer = Bukkit.getOfflinePlayer(ChatColor.stripColor(sign.getLine(y)));
                     Lockette.log.log(Level.INFO, "[Lockette] Converting {0} !", oplayer.getName());
                     try{
@@ -90,12 +90,12 @@ public class LocketteUtils {
         int y;
         String name;
         UUID uuid;
-        
-        for(y = 2; y <= 3; ++y){
+       
+        for(y = 1; y <= 3; ++y){
             if(!sign.getLine(y).equalsIgnoreCase("[Everyone]") && !sign.getLine(y).equalsIgnoreCase(Lockette.altEveryone) && !sign.getLine(y).isEmpty()){
                 try {
                     name = sign.getLine(y).split(";")[0].trim();
-                    uuid = UUID.fromString(sign.getLine(y).split(";")[1]);	
+                    uuid = UUID.fromString(sign.getLine(y).split(";")[1]);
                     if(uuid.equals(player.getUniqueId())){
                     //Check if the Player name has changen and update it
                         if(!name.equals(player.getName())){
